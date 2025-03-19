@@ -5,6 +5,41 @@ const SHOPIFY_STORE = "goelvetpharma2.myshopify.com";
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_TOKEN;
 const SHOPIFY_API_VERSION = "2024-01"; // Adjust if needed
 
+exports.getProducts = async (req, res) => {
+    try {
+        const { search } = req.query;
+        let filter = {};
+
+        if (search) {
+            filter = {
+                $or: [
+                    { title: { $regex: search, $options: "i" } },
+                    { "variants.sku": { $regex: search, $options: "i" } },
+                    { vendor: { $regex: search, $options: "i" } },
+                    { productType: { $regex: search, $options: "i" } },
+                ],
+            };
+        }
+
+        const products = await Product.find(filter);
+        res.status(200).json(products);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching products", error });
+    }
+};
+
+exports.getProductById = async (req, res) => {
+    try {
+        const product = await Product.findOne({ shopifyId: req.params.id });
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+        res.status(200).json(product);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching product", error });
+    }
+};
+
 // Fetch all Shopify products
 const fetchAllShopifyProducts = async () => {
     let products = [];
