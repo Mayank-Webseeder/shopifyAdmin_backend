@@ -3,11 +3,11 @@ const swaggerAutogen = require("swagger-autogen")();
 const doc = {
     info: {
         title: "SHOPIFY PANEL API",
-        description: "Auto-generated API documentation",
-        version: "1.0.0",
+        description: "API documentation",
+        version: "2.0.0",
     },
-    host: "api-shopify.webseeder.tech", // Ensure this matches your backend port
-    schemes: ["https"], // Change to ["https"] in production
+    host: "api-shopify.webseeder.tech",
+    schemes: ["https"],
     tags: [
         { name: "Auth", description: "User authentication routes" },
         { name: "Products", description: "Product-related operations" },

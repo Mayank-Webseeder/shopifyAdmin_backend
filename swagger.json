@@ -2,8 +2,8 @@
   "swagger": "2.0",
   "info": {
     "title": "SHOPIFY PANEL API",
-    "description": "Auto-generated API documentation",
-    "version": "1.0.0"
+    "description": "API documentation",
+    "version": "2.0.0"
   },
   "host": "api-shopify.webseeder.tech",
   "basePath": "/",
@@ -630,6 +630,9 @@
             "schema": {
               "type": "object",
               "properties": {
+                "linkedProducts": {
+                  "example": "any"
+                },
                 "title": {
                   "example": "any"
                 },
@@ -637,9 +640,6 @@
                   "example": "any"
                 },
                 "subcategory": {
-                  "example": "any"
-                },
-                "linkedProducts": {
                   "example": "any"
                 }
               }
@@ -660,6 +660,13 @@
           "Pages"
         ],
         "description": "",
+        "parameters": [
+          {
+            "name": "subcategory",
+            "in": "query",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"

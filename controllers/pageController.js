@@ -4,35 +4,43 @@ const deleteImage = require("../utils/deleteImage");
 // Create a page
 const createPage = async (req, res) => {
     try {
-        const { title, content, subcategory, linkedProducts } = req.body;
+        const { title, content, subcategory } = req.body;
+        const linkedProducts = req.body.linkedProducts
+            ? Array.isArray(req.body.linkedProducts)
+                ? req.body.linkedProducts
+                : [req.body.linkedProducts] // Ensure it's an array
+            : [];
+
         const bannerImage = req.files["bannerImage"] ? `uploads/${req.files["bannerImage"][0].filename}` : null;
         const avatarImage = req.files["avatarImage"] ? `uploads/${req.files["avatarImage"][0].filename}` : null;
 
-        const page = new Page({
-            title,
-            content,
-            subcategory,
-            bannerImage,
-            avatarImage,
-            linkedProducts: linkedProducts ? JSON.parse(linkedProducts) : [], // Convert JSON string to array if provided
-        });
-
+        const page = new Page({ title, content, subcategory, bannerImage, avatarImage, linkedProducts });
         await page.save();
+
         res.status(201).json(page);
     } catch (error) {
         res.status(500).json({ message: "Error creating page", error });
     }
 };
 
+
 // Get all pages with linked products
 const getPages = async (req, res) => {
     try {
-        const pages = await Page.find().populate("linkedProducts"); // Fetch linked products
+        const { subcategory } = req.query;
+        let query = {};
+
+        if (subcategory) {
+            query.subcategory = subcategory; // Filter by subcategory if provided
+        }
+
+        const pages = await Page.find(query).populate("linkedProducts").populate("subcategory");
         res.status(200).json(pages);
     } catch (error) {
         res.status(500).json({ message: "Error fetching pages", error });
     }
 };
+
 
 // Get a single page by ID with linked products
 const getPageById = async (req, res) => {
