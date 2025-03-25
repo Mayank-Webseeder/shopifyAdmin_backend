@@ -2,7 +2,7 @@ const swaggerAutogen = require("swagger-autogen")();
 
 const doc = {
     info: {
-        title: "MERN API",
+        title: "SHOPIFY PANEL API",
         description: "Auto-generated API documentation",
         version: "1.0.0",
     },

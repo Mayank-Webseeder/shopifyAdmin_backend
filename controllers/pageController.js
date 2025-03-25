@@ -4,33 +4,40 @@ const deleteImage = require("../utils/deleteImage");
 // Create a page
 const createPage = async (req, res) => {
     try {
-        const { title, content, subcategory } = req.body;
+        const { title, content, subcategory, linkedProducts } = req.body;
         const bannerImage = req.files["bannerImage"] ? `uploads/${req.files["bannerImage"][0].filename}` : null;
         const avatarImage = req.files["avatarImage"] ? `uploads/${req.files["avatarImage"][0].filename}` : null;
 
-        const page = new Page({ title, content, subcategory, bannerImage, avatarImage });
-        await page.save();
+        const page = new Page({
+            title,
+            content,
+            subcategory,
+            bannerImage,
+            avatarImage,
+            linkedProducts: linkedProducts ? JSON.parse(linkedProducts) : [], // Convert JSON string to array if provided
+        });
 
+        await page.save();
         res.status(201).json(page);
     } catch (error) {
         res.status(500).json({ message: "Error creating page", error });
     }
 };
 
-// Get all pages
+// Get all pages with linked products
 const getPages = async (req, res) => {
     try {
-        const pages = await Page.find();
+        const pages = await Page.find().populate("linkedProducts"); // Fetch linked products
         res.status(200).json(pages);
     } catch (error) {
         res.status(500).json({ message: "Error fetching pages", error });
     }
 };
 
-// Get a single page by ID
+// Get a single page by ID with linked products
 const getPageById = async (req, res) => {
     try {
-        const page = await Page.findById(req.params.id);
+        const page = await Page.findById(req.params.id).populate("linkedProducts");
         if (!page) return res.status(404).json({ message: "Page not found" });
 
         res.status(200).json(page);
@@ -43,10 +50,13 @@ const getPageById = async (req, res) => {
 const updatePage = async (req, res) => {
     try {
         const { id } = req.params;
+        const { linkedProducts } = req.body;
         const page = await Page.findById(id);
         if (!page) return res.status(404).json({ message: "Page not found" });
 
         let updatedFields = req.body;
+        updatedFields.linkedProducts = linkedProducts ? JSON.parse(linkedProducts) : [];
+
         if (req.files["bannerImage"]) {
             deleteImage(page.bannerImage);
             updatedFields.bannerImage = `uploads/${req.files["bannerImage"][0].filename}`;
@@ -56,7 +66,7 @@ const updatePage = async (req, res) => {
             updatedFields.avatarImage = `uploads/${req.files["avatarImage"][0].filename}`;
         }
 
-        const updatedPage = await Page.findByIdAndUpdate(id, updatedFields, { new: true });
+        const updatedPage = await Page.findByIdAndUpdate(id, updatedFields, { new: true }).populate("linkedProducts");
         res.status(200).json(updatedPage);
     } catch (error) {
         res.status(500).json({ message: "Error updating page", error });
