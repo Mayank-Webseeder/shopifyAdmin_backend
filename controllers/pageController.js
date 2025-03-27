@@ -54,7 +54,6 @@ const getPageById = async (req, res) => {
     }
 };
 
-// Update a page
 const updatePage = async (req, res) => {
     try {
         const { id } = req.params;
@@ -62,9 +61,12 @@ const updatePage = async (req, res) => {
         const page = await Page.findById(id);
         if (!page) return res.status(404).json({ message: "Page not found" });
 
-        let updatedFields = req.body;
-        updatedFields.linkedProducts = linkedProducts ? JSON.parse(linkedProducts) : [];
+        let updatedFields = { ...req.body };
 
+        // Ensure linkedProducts is an array
+        updatedFields.linkedProducts = [].concat(linkedProducts || []);
+
+        // Handle image updates
         if (req.files["bannerImage"]) {
             deleteImage(page.bannerImage);
             updatedFields.bannerImage = `uploads/${req.files["bannerImage"][0].filename}`;
@@ -77,9 +79,11 @@ const updatePage = async (req, res) => {
         const updatedPage = await Page.findByIdAndUpdate(id, updatedFields, { new: true }).populate("linkedProducts");
         res.status(200).json(updatedPage);
     } catch (error) {
+        console.error("Error updating page:", error);
         res.status(500).json({ message: "Error updating page", error });
     }
 };
+
 
 // Delete a page
 const deletePage = async (req, res) => {

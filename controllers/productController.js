@@ -1,5 +1,6 @@
 const axios = require("axios");
 const Product = require("../models/Product");
+const WebhookLog = require("../models/WebhookLog");
 
 const SHOPIFY_STORE = "goelvetpharma2.myshopify.com";
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_TOKEN;
@@ -103,14 +104,13 @@ exports.fullSync = async (req, res) => {
 
         // Delete products from MongoDB that no longer exist in Shopify
         await Product.deleteMany({ shopifyId: { $nin: shopifyProductIds } });
-
+        await WebhookLog.create({ message: "Full Sync Completed", syncType: "Full Sync" });
         res.json({ success: true, message: "Shopify products synced successfully" });
     } catch (error) {
         console.error("Full sync error:", error);
         res.status(500).json({ success: false, message: "Error syncing products" });
     }
 };
-
 
 // Webhook: Handle Product Created/Updated
 exports.handleProductUpdate = async (req, res) => {
@@ -142,6 +142,7 @@ exports.handleProductUpdate = async (req, res) => {
             { upsert: true, new: true }
         );
 
+        await WebhookLog.create({ message: `Product updated: ${product.title}`, syncType: "Product Update" });
         res.json({ success: true, message: "Product updated successfully" });
     } catch (error) {
         console.error("Webhook update error:", error);
@@ -155,6 +156,7 @@ exports.handleProductDelete = async (req, res) => {
         const { id } = req.body; // Shopify sends the deleted product ID
 
         await Product.findOneAndDelete({ shopifyId: id });
+        await WebhookLog.create({ message: `Product deleted: ${deletedProduct?.title || 'Unknown'}`, syncType: "Product Delete" });
 
         res.json({ success: true, message: "Product deleted successfully" });
     } catch (error) {

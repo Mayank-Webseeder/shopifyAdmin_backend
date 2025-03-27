@@ -51,22 +51,27 @@ const getSectionById = async (req, res) => {
         res.status(500).json({ message: "Error fetching section", error });
     }
 };
-
-// Update a section
 const updateSection = async (req, res) => {
     try {
         const { id } = req.params;
-        const { linkedPages = [], linkedProducts = [] } = req.body;
+        let { linkedPages = [], linkedProducts = [] } = req.body;
         const section = await HomePageSection.findById(id);
 
         if (!section) return res.status(404).json({ message: "Section not found" });
 
-        // Ensure only one of linkedPages or linkedProducts is provided
-        if (linkedPages.length > 0 && linkedProducts.length > 0) {
-            return res.status(400).json({ message: "Only one of linkedPages or linkedProducts can be selected." });
+        // If pages are sent, clear products. If products are sent, clear pages.
+        if (linkedPages.length > 0) {
+            linkedProducts = []; // Clear products if pages are being updated
+        } else if (linkedProducts.length > 0) {
+            linkedPages = []; // Clear pages if products are being updated
         }
 
-        let updatedFields = req.body;
+        let updatedFields = {
+            ...req.body,
+            linkedPages,
+            linkedProducts
+        };
+
         if (req.file) {
             deleteImage(section.bannerImage);
             updatedFields.bannerImage = `uploads/${req.file.filename}`;
@@ -78,9 +83,11 @@ const updateSection = async (req, res) => {
 
         res.status(200).json(updatedSection);
     } catch (error) {
+        console.error("Error updating section:", error);
         res.status(500).json({ message: "Error updating section", error });
     }
 };
+
 
 // Delete a section
 const deleteSection = async (req, res) => {
