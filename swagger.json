@@ -555,9 +555,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "bannerImage": {
-                  "example": "any"
-                },
                 "linkedPages": {
                   "example": "any"
                 },
@@ -571,9 +568,6 @@
         "responses": {
           "200": {
             "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"
@@ -677,6 +671,29 @@
         }
       }
     },
+    "/api/pages/admin": {
+      "get": {
+        "tags": [
+          "Pages"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "subcategory",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/pages/{id}": {
       "get": {
         "tags": [
@@ -723,12 +740,6 @@
               "properties": {
                 "linkedProducts": {
                   "example": "any"
-                },
-                "bannerImage": {
-                  "example": "any"
-                },
-                "avatarImage": {
-                  "example": "any"
                 }
               }
             }
@@ -765,6 +776,19 @@
           },
           "404": {
             "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/dashboard/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
           },
           "500": {
             "description": "Internal Server Error"

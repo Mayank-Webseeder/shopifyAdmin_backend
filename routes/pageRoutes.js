@@ -9,6 +9,9 @@ router.post("/", upload.fields([{ name: "bannerImage" }, { name: "avatarImage" }
 // Get all pages
 router.get("/", pageController.getPages);
 
+// Get all pages for admin
+router.get("/admin", pageController.getPagesForAdmin);
+
 // Get a single page by ID
 router.get("/:id", pageController.getPageById);
 

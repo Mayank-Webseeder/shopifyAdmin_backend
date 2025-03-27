@@ -34,6 +34,26 @@ const getPages = async (req, res) => {
             query.subcategory = subcategory; // Filter by subcategory if provided
         }
 
+        const pages = await Page.find(query)
+            .select("_id title avatarImage subcategory") // Select only the required fields
+            .populate("subcategory"); // Populate subcategory data
+
+        res.status(200).json(pages);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching pages", error });
+    }
+};
+
+
+const getPagesForAdmin = async (req, res) => {
+    try {
+        const { subcategory } = req.query;
+        let query = {};
+
+        if (subcategory) {
+            query.subcategory = subcategory; // Filter by subcategory if provided
+        }
+
         const pages = await Page.find(query).populate("linkedProducts").populate("subcategory");
         res.status(200).json(pages);
     } catch (error) {
@@ -101,4 +121,4 @@ const deletePage = async (req, res) => {
     }
 };
 
-module.exports = { createPage, getPages, getPageById, updatePage, deletePage };
+module.exports = { createPage, getPages, getPageById, updatePage, deletePage, getPagesForAdmin };
