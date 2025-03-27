@@ -155,8 +155,14 @@ exports.handleProductDelete = async (req, res) => {
     try {
         const { id } = req.body; // Shopify sends the deleted product ID
 
-        await Product.findOneAndDelete({ shopifyId: id });
-        await WebhookLog.create({ message: `Product deleted: ${deletedProduct?.title || 'Unknown'}`, syncType: "Product Delete" });
+        // Find and delete the product
+        const deletedProduct = await Product.findOneAndDelete({ shopifyId: id });
+
+        // Log webhook event
+        await WebhookLog.create({
+            message: `Product deleted: ${deletedProduct ? deletedProduct.title : 'Unknown'}`,
+            syncType: "Product Delete"
+        });
 
         res.json({ success: true, message: "Product deleted successfully" });
     } catch (error) {
@@ -164,3 +170,4 @@ exports.handleProductDelete = async (req, res) => {
         res.status(500).json({ success: false, message: "Error deleting product" });
     }
 };
+
