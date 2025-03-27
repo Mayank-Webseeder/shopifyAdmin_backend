@@ -65,7 +65,7 @@ const getPagesForAdmin = async (req, res) => {
 // Get a single page by ID with linked products
 const getPageById = async (req, res) => {
     try {
-        const page = await Page.findById(req.params.id).populate("linkedProducts");
+        const page = await Page.findById(req.params.id).populate("linkedProducts").populate("subcategory");
         if (!page) return res.status(404).json({ message: "Page not found" });
 
         res.status(200).json(page);
