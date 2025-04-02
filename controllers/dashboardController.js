@@ -26,9 +26,9 @@ exports.getDashboardStats = async (req, res) => {
             .select("title updatedAt");
 
         // Get low-stock products (inventory < 10)
-        const lowStockProducts = await Product.find({ "variants.inventory_quantity": { $lt: 10 } })
-            .select("title variants.inventory_quantity")
-            .limit(5);
+        // const lowStockProducts = await Product.find({ "variants.inventory_quantity": { $lt: 10 } })
+        //     .select("title variants.inventory_quantity")
+        //     .limit(5);
 
         res.json({
             totalSubcategories,
@@ -45,10 +45,10 @@ exports.getDashboardStats = async (req, res) => {
                 title: p.title,
                 updatedAt: p.updatedAt
             })),
-            lowStockProducts: lowStockProducts.map(p => ({
-                title: p.title,
-                stock: p.variants.map(v => v.inventory_quantity).join(", ")
-            }))
+            // lowStockProducts: lowStockProducts.map(p => ({
+            //     title: p.title,
+            //     stock: p.variants.map(v => v.inventory_quantity).join(", ")
+            // }))
         });
     } catch (error) {
         console.error("Dashboard error:", error);
