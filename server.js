@@ -13,7 +13,7 @@ const pageRoutes = require("./routes/pageRoutes");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
 const dashboardRoutes = require("./routes/dashboardRoutes");
-
+const offerSectionRoutes = require("./routes/offerSectionRoutes");
 
 
 const app = express();
@@ -32,6 +32,7 @@ app.use("/api/subcategories", subcategoryRoutes);
 app.use("/api/homepage", homePageRoutes);
 app.use("/api/pages", pageRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/offer-sections", offerSectionRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
