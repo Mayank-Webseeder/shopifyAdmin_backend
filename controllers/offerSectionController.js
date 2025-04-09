@@ -44,8 +44,8 @@ exports.getOfferSections = async (req, res) => {
 exports.getOfferSectionById = async (req, res) => {
     try {
         const section = await OfferSection.findById(req.params.id)
-            .populate("subcategories", "name")
-            .populate("products", "title");
+            .populate("subcategories")
+            .populate("products");
 
         if (!section) return res.status(404).json({ message: "Offer Section not found" });
 
