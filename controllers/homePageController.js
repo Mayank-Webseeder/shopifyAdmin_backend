@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 // Create a new section
 const createSection = async (req, res) => {
     try {
-        const { title, linkedPages = [], linkedProducts = [] } = req.body;
+        const { linkedPages = [], linkedProducts = [] } = req.body;
         const bannerImage = req.file ? `uploads/${req.file.filename}` : null;
 
         // Ensure only one of linkedPages or linkedProducts is provided
@@ -13,7 +13,7 @@ const createSection = async (req, res) => {
             return res.status(400).json({ message: "Only one of linkedPages or linkedProducts can be selected." });
         }
 
-        const section = new HomePageSection({ title, bannerImage, linkedPages, linkedProducts });
+        const section = new HomePageSection({ bannerImage, linkedPages, linkedProducts });
         await section.save();
 
         res.status(201).json(section);

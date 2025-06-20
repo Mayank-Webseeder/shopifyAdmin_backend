@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const HomePageSectionSchema = new mongoose.Schema({
-    title: { type: String, required: true },
     bannerImage: { type: String, required: true },
     linkedPages: [{ type: mongoose.Schema.Types.ObjectId, ref: "Page" }],
     linkedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
