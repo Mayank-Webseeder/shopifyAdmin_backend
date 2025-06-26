@@ -68,6 +68,39 @@ const fetchAllShopifyProducts = async () => {
     }
 };
 
+// Fetch all Shopify collections
+exports.getShopifyCollections = async (req, res) => {
+    try {
+        let custom_collections = [];
+        let nextPageUrl = `https://${SHOPIFY_STORE}/admin/api/${SHOPIFY_API_VERSION}/custom_collections.json`;
+
+        while (nextPageUrl) {
+            const response = await axios.get(nextPageUrl, {
+                headers: {
+                    "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            custom_collections = [...custom_collections, ...response.data.custom_collections];
+
+            // Handle pagination
+            const linkHeader = response.headers.link;
+            nextPageUrl = linkHeader && linkHeader.includes('rel="next"')
+                ? linkHeader.split(";")[0].replace("<", "").replace(">", "").trim()
+                : null;
+        }
+
+        res.status(200).json(custom_collections);
+    } catch (error) {
+        console.error("Error fetching Shopify collections:", error.response?.data || error.message);
+        res.status(500).json({
+            message: "Error fetching Shopify collections",
+            error: error.response?.data || error.message,
+        });
+    }
+};
+
 // Full Sync: Fetch all Shopify products and store/update in MongoDB
 exports.fullSync = async (req, res) => {
     try {
