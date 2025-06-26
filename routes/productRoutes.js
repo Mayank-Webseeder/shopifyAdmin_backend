@@ -4,6 +4,7 @@ const productController = require("../controllers/productController");
 
 // Get all products
 router.get("/", productController.getProducts);
+router.get("/collections", productController.getShopifyCollections);
 //Get Product By ID
 router.get("/:id", productController.getProductById);
 
