@@ -125,6 +125,22 @@
         }
       }
     },
+    "/api/products/collections": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/api/products/{id}": {
       "get": {
         "tags": [
@@ -411,13 +427,25 @@
             "schema": {
               "type": "object",
               "properties": {
-                "title": {
-                  "example": "any"
-                },
                 "linkedPages": {
                   "example": "any"
                 },
                 "linkedProducts": {
+                  "example": "any"
+                },
+                "bannerLinkType": {
+                  "example": "any"
+                },
+                "bannerLinkId": {
+                  "example": "any"
+                },
+                "moreLinkType": {
+                  "example": "any"
+                },
+                "moreLinkId": {
+                  "example": "any"
+                },
+                "position": {
                   "example": "any"
                 }
               }
@@ -525,6 +553,21 @@
                 },
                 "linkedProducts": {
                   "example": "any"
+                },
+                "bannerLinkType": {
+                  "example": "any"
+                },
+                "bannerLinkId": {
+                  "example": "any"
+                },
+                "moreLinkType": {
+                  "example": "any"
+                },
+                "moreLinkId": {
+                  "example": "any"
+                },
+                "position": {
+                  "example": "any"
                 }
               }
             }
@@ -533,6 +576,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           },
           "404": {
             "description": "Not Found"
