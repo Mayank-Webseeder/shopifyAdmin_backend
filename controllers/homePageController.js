@@ -11,6 +11,7 @@ const createSection = async (req, res) => {
             bannerLinkType = "none",
             bannerLinkId,
             moreLinkType = "none",
+            moreButtonText,
             moreLinkId,
             position = 0
         } = req.body;
@@ -44,6 +45,7 @@ const createSection = async (req, res) => {
             bannerLinkId,
             moreLinkType,
             moreLinkId,
+            moreButtonText,
             linkedPages,
             linkedProducts,
             position
@@ -95,6 +97,7 @@ const updateSection = async (req, res) => {
             bannerLinkId,
             moreLinkType,
             moreLinkId,
+            moreButtonText,
             position
         } = req.body;
 
@@ -129,6 +132,7 @@ const updateSection = async (req, res) => {
         if (moreLinkType !== undefined) updatedFields.moreLinkType = moreLinkType;
         if (moreLinkId !== undefined) updatedFields.moreLinkId = moreLinkId;
         if (position !== undefined) updatedFields.position = position;
+        if (moreButtonText !== undefined) updatedFields.moreButtonText = moreButtonText;
 
         // Handle image updates
         if (req.files && req.files.bannerImage) {

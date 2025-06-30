@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
 
-
 const HomePageSectionSchema = new mongoose.Schema({
     bannerImage: { type: String, required: true },
     moreButtonImage: { type: String }, // New field for more button image
+    moreButtonText: { type: String, default: "more" }, // New field for more button text
     bannerLinkType: {
         type: String,
         enum: ["none", "subcategory", "collection"],
