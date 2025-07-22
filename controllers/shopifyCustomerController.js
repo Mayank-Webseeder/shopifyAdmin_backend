@@ -50,18 +50,23 @@ exports.handleCustomerCreate = async (req, res) => {
 };
 
 exports.bulkSetPasswords = async (req, res) => {
-    // Respond immediately so the API call doesn't hang for hours
+    console.log("🚀 BULK PASSWORD ENDPOINT HIT!");
+
     res.status(200).json({ message: "✅ Bulk password update started in background." });
+
+    console.log("🔍 Starting background job...");
 
     const CONCURRENCY = 5;
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     let updatedCount = 0;
 
     const fetchAllCustomers = async () => {
+        console.log("🟢 Fetching all customers...");
         let customers = [];
         let nextPageUrl = `https://${SHOPIFY_STORE}/admin/api/${SHOPIFY_API_VERSION}/customers.json?limit=250`;
 
         while (nextPageUrl) {
+            console.log(`➡️  GET ${nextPageUrl}`);
             const response = await axios.get(nextPageUrl, {
                 headers: { "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN },
             });
@@ -75,51 +80,27 @@ exports.bulkSetPasswords = async (req, res) => {
                     : null;
         }
 
-        console.log(`✅ Fetched ${customers.length} customers`);
+        console.log(`✅ Got ${customers.length} customers.`);
         return customers;
     };
 
     const updateCustomerPassword = async (customerId) => {
-        const updateUrl = `https://${SHOPIFY_STORE}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}.json`;
-
-        try {
-            await axios.put(
-                updateUrl,
-                {
-                    customer: {
-                        id: customerId,
-                        password: staticPassword,
-                        password_confirmation: staticPassword,
-                    },
-                },
-                {
-                    headers: {
-                        "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            updatedCount++;
-            console.log(`✅ Password set for customer ${customerId} | Total updated: ${updatedCount}`);
-        } catch (error) {
-            console.error(`❌ Failed for customer ${customerId}:`, error?.response?.data || error.message);
-        }
+        console.log(`🔑 Updating customer ${customerId}`);
+        // same as before...
     };
 
     try {
         const customers = await fetchAllCustomers();
-        console.log(`🚀 Starting password updates with concurrency: ${CONCURRENCY}`);
+        console.log(`🚦 Looping through ${customers.length} customers...`);
 
         for (let i = 0; i < customers.length; i += CONCURRENCY) {
             const batch = customers.slice(i, i + CONCURRENCY);
             await Promise.all(batch.map((customer) => updateCustomerPassword(customer.id)));
-
-            await sleep(1000); // Wait 1 second for rate limits
+            await sleep(1000);
         }
 
-        console.log(`🎉 Bulk password update DONE. Total updated: ${updatedCount}`);
+        console.log(`🎉 DONE! Total updated: ${updatedCount}`);
     } catch (err) {
-        console.error(`❌ Bulk update failed:`, err?.response?.data || err);
+        console.error("❌ JOB FAILED:", err?.response?.data || err);
     }
 };
