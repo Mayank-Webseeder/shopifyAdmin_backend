@@ -57,7 +57,8 @@ exports.bulkSetPasswords = async (req, res) => {
 
     console.log("🔍 Starting background job...");
 
-    const CONCURRENCY = 5; // Number of concurrent password updates
+    const CONCURRENCY = 2; // ✅ Safe for Shopify REST
+    const staticPassword = "Shopify@2024Secure!";
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     let updatedCount = 0;
 
@@ -133,7 +134,7 @@ exports.bulkSetPasswords = async (req, res) => {
         for (let i = 0; i < customers.length; i += CONCURRENCY) {
             const batch = customers.slice(i, i + CONCURRENCY);
             await Promise.all(batch.map((customer) => updateCustomerPassword(customer.id)));
-            await sleep(1000); // Respect API rate limit
+            await sleep(1000); // ✅ Respect Shopify REST rate limit
         }
 
         console.log(`🎉 Bulk password update DONE. Total updated: ${updatedCount}`);
@@ -141,3 +142,4 @@ exports.bulkSetPasswords = async (req, res) => {
         console.error("❌ JOB FAILED:", err?.response?.data || err);
     }
 };
+
