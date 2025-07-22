@@ -15,6 +15,7 @@ const swaggerDocument = require("./swagger.json");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const offerSectionRoutes = require("./routes/offerSectionRoutes");
 const otpRoutes = require('./routes/otpRoutes');
+const shopifyCustomerRoutes = require("./routes/shopifyCustomerRoutes.js");
 
 const app = express();
 app.use(express.json());
@@ -34,6 +35,7 @@ app.use("/api/pages", pageRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/offer-sections", offerSectionRoutes);
 app.use('/api/otp', otpRoutes);
+app.use("/api/customer", shopifyCustomerRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
