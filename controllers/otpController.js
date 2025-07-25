@@ -14,18 +14,21 @@ function generateOTP() {
 }
 
 exports.sendOtp = async (req, res) => {
+    console.log("api called for sending otp")
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: 'Phone number required' });
 
     const existingOtp = await Otp.findOne({ phone }).sort({ createdAt: -1 });
 
     const now = new Date();
-    const COOLDOWN_SECONDS = 60;
+    const COOLDOWN_SECONDS = 30;
     if (existingOtp && now - existingOtp.lastSentAt < COOLDOWN_SECONDS * 1000) {
         return res.status(429).json({ message: 'Please wait before requesting another OTP.' });
     }
 
     const otp = generateOTP();
+    console.log(otp, "here is the otp for", phone);
+
     const message = `Dear User ${otp} : is the OTP for Your Login at Goel Vet Pharma Pvt`;
     const encodedMessage = encodeURIComponent(message)
         .replace(/&/g, '%26')
@@ -35,7 +38,12 @@ exports.sendOtp = async (req, res) => {
 
     try {
         await axios.get(url);
+
+        console.log("kit19 API called")
+
         await Otp.create({ phone, otp, lastSentAt: now });
+
+        console.log("otp saved in Database")
 
         res.status(200).json({ message: 'OTP sent successfully' });
     } catch (error) {
