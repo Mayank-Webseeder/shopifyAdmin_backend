@@ -188,28 +188,26 @@ exports.bulkSetPasswords = async (req, res) => {
     }
 };
 
-// Bulk Fix Invited State
-exports.bulkFixInvitedCustomers = async (req, res) => {
-    console.log("🚀 BULK INVITED FIX ENDPOINT HIT!");
+// Bulk Fix Invited & disabled State
+exports.bulkFixInvitedAndDisabledCustomers = async (req, res) => {
+    console.log("🚀 BULK INVITED+DISABLED FIX ENDPOINT HIT!");
 
-    // respond immediately so it runs in background
-    res.status(200).json({ message: "✅ Bulk invited customer fix started in background." });
+    res.status(200).json({ message: "✅ Bulk fix (invited + disabled) started in background." });
 
     console.log("🔍 Starting background job...");
 
-    const CONCURRENCY = 2; // Shopify safe
+    const CONCURRENCY = 2;
     const staticPassword = "Shopify@2024Secure!";
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     let updatedCount = 0;
 
     const parseLinkHeader = (linkHeader) => {
         if (!linkHeader) return null;
-
         const links = linkHeader.split(",");
         for (const link of links) {
             const [urlPart, relPart] = link.split(";");
             if (relPart && relPart.includes('rel="next"')) {
-                return urlPart.trim().slice(1, -1); // remove < >
+                return urlPart.trim().slice(1, -1);
             }
         }
         return null;
@@ -238,7 +236,7 @@ exports.bulkFixInvitedCustomers = async (req, res) => {
         return customers;
     };
 
-    const updateCustomerPassword = async (customerId) => {
+    const updateCustomerPassword = async (customerId, state) => {
         const updateUrl = `https://${SHOPIFY_STORE}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}.json`;
         try {
             await axios.put(
@@ -258,26 +256,41 @@ exports.bulkFixInvitedCustomers = async (req, res) => {
                 }
             );
             updatedCount++;
-            console.log(`✅ Fixed customer ${customerId} | Total updated: ${updatedCount}`);
+            console.log(`✅ Fixed ${state} customer ${customerId} | Total updated: ${updatedCount}`);
         } catch (error) {
-            console.error(`❌ Failed for customer ${customerId}:`, error?.response?.data || error.message);
+            console.error(`❌ Failed for ${state} customer ${customerId}:`, error?.response?.data || error.message);
         }
     };
 
     try {
         const customers = await fetchAllCustomers();
 
-        // 🔎 filter only invited customers
+        // 🔎 group invited & disabled
         const invitedCustomers = customers.filter((c) => c.state === "invited");
-        console.log(`🎯 Found ${invitedCustomers.length} invited customers.`);
+        const disabledCustomers = customers.filter((c) => c.state === "disabled");
 
-        for (let i = 0; i < invitedCustomers.length; i += CONCURRENCY) {
-            const batch = invitedCustomers.slice(i, i + CONCURRENCY);
-            await Promise.all(batch.map((c) => updateCustomerPassword(c.id)));
-            await sleep(1000); // avoid API throttling
+        console.log(`🎯 Found ${invitedCustomers.length} invited and ${disabledCustomers.length} disabled customers.`);
+
+        const processBatch = async (list, state) => {
+            for (let i = 0; i < list.length; i += CONCURRENCY) {
+                const batch = list.slice(i, i + CONCURRENCY);
+                await Promise.all(batch.map((c) => updateCustomerPassword(c.id, state)));
+                await sleep(1000);
+            }
+        };
+
+        // process sequentially: invited → disabled
+        if (invitedCustomers.length > 0) {
+            console.log("⚡ Fixing invited customers...");
+            await processBatch(invitedCustomers, "invited");
         }
 
-        console.log(`🎉 Fix complete. Total invited fixed: ${updatedCount}`);
+        if (disabledCustomers.length > 0) {
+            console.log("⚡ Fixing disabled customers...");
+            await processBatch(disabledCustomers, "disabled");
+        }
+
+        console.log(`🎉 Fix complete. Invited fixed: ${invitedCustomers.length}, Disabled fixed: ${disabledCustomers.length}, Total updated: ${updatedCount}`);
     } catch (err) {
         console.error("❌ JOB FAILED:", err?.response?.data || err);
     }
