@@ -188,3 +188,97 @@ exports.bulkSetPasswords = async (req, res) => {
     }
 };
 
+// Bulk Fix Invited State
+exports.bulkFixInvitedCustomers = async (req, res) => {
+    console.log("🚀 BULK INVITED FIX ENDPOINT HIT!");
+
+    // respond immediately so it runs in background
+    res.status(200).json({ message: "✅ Bulk invited customer fix started in background." });
+
+    console.log("🔍 Starting background job...");
+
+    const CONCURRENCY = 2; // Shopify safe
+    const staticPassword = "Shopify@2024Secure!";
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    let updatedCount = 0;
+
+    const parseLinkHeader = (linkHeader) => {
+        if (!linkHeader) return null;
+
+        const links = linkHeader.split(",");
+        for (const link of links) {
+            const [urlPart, relPart] = link.split(";");
+            if (relPart && relPart.includes('rel="next"')) {
+                return urlPart.trim().slice(1, -1); // remove < >
+            }
+        }
+        return null;
+    };
+
+    const fetchAllCustomers = async () => {
+        console.log("🟢 Fetching all customers...");
+        let customers = [];
+        let nextPageUrl = `https://${SHOPIFY_STORE}/admin/api/${SHOPIFY_API_VERSION}/customers.json?limit=250`;
+
+        while (nextPageUrl) {
+            console.log(`➡️  GET ${nextPageUrl}`);
+            const response = await axios.get(nextPageUrl, {
+                headers: { "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN },
+            });
+
+            customers = [...customers, ...response.data.customers];
+
+            const linkHeader = response.headers.link;
+            nextPageUrl = parseLinkHeader(linkHeader);
+
+            console.log(`📄 Customers fetched so far: ${customers.length}`);
+        }
+
+        console.log(`✅ All customers fetched. Total: ${customers.length}`);
+        return customers;
+    };
+
+    const updateCustomerPassword = async (customerId) => {
+        const updateUrl = `https://${SHOPIFY_STORE}/admin/api/${SHOPIFY_API_VERSION}/customers/${customerId}.json`;
+        try {
+            await axios.put(
+                updateUrl,
+                {
+                    customer: {
+                        id: customerId,
+                        password: staticPassword,
+                        password_confirmation: staticPassword,
+                    },
+                },
+                {
+                    headers: {
+                        "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+            updatedCount++;
+            console.log(`✅ Fixed customer ${customerId} | Total updated: ${updatedCount}`);
+        } catch (error) {
+            console.error(`❌ Failed for customer ${customerId}:`, error?.response?.data || error.message);
+        }
+    };
+
+    try {
+        const customers = await fetchAllCustomers();
+
+        // 🔎 filter only invited customers
+        const invitedCustomers = customers.filter((c) => c.state === "invited");
+        console.log(`🎯 Found ${invitedCustomers.length} invited customers.`);
+
+        for (let i = 0; i < invitedCustomers.length; i += CONCURRENCY) {
+            const batch = invitedCustomers.slice(i, i + CONCURRENCY);
+            await Promise.all(batch.map((c) => updateCustomerPassword(c.id)));
+            await sleep(1000); // avoid API throttling
+        }
+
+        console.log(`🎉 Fix complete. Total invited fixed: ${updatedCount}`);
+    } catch (err) {
+        console.error("❌ JOB FAILED:", err?.response?.data || err);
+    }
+};
